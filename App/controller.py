@@ -41,6 +41,73 @@ def init():
 
 # Funciones para la carga de datos
 
+def loadData(analyzer):
+    """
+    Carga los datos de los archivos CSV en el modelo
+    """
+    tracksfile = cf.data_dir + 'user_track_hashtag_timestamp-5pct.csv'
+    input_file = csv.DictReader(open(tracksfile, encoding="utf-8"),
+                                delimiter=",")
+    for event in input_file:
+        model.addEvent(analyzer, event)
+    return analyzer
+
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+
+def eventsSize(analyzer):
+    """
+    Numero de crimenes leidos
+    """
+    return model.eventsSize(analyzer)
+
+
+def indexHeight(analyzer):
+    """
+    Altura del indice (arbol)
+    """
+    return model.indexHeight(analyzer)
+
+
+def indexSize(analyzer):
+    """
+    Numero de nodos en el arbol
+    """
+    return model.indexSize(analyzer)
+
+
+def minKey(analyzer):
+    """
+    La menor llave del arbol
+    """
+    return model.minKey(analyzer)
+
+
+def maxKey(analyzer):
+    """
+    La mayor llave del arbol
+    """
+    return model.maxKey(analyzer)
+
+
+# def getCrimesByRange(analyzer, initialDate, finalDate):
+#     """
+#     Retorna el total de crimenes en un rango de fechas
+#     """
+#     initialDate = datetime.datetime.strptime(initialDate, '%Y-%m-%d')
+#     finalDate = datetime.datetime.strptime(finalDate, '%Y-%m-%d')
+#     return model.getCrimesByRange(analyzer, initialDate.date(),
+#                                   finalDate.date())
+
+
+# def getCrimesByRangeCode(analyzer, initialDate,
+#                          offensecode):
+#     """
+#     Retorna el total de crimenes de un tipo especifico en una
+#     fecha determinada
+#     """
+#     initialDate = datetime.datetime.strptime(initialDate, '%Y-%m-%d')
+#     return model.getCrimesByRangeCode(analyzer, initialDate.date(),
+#                                       offensecode)
+

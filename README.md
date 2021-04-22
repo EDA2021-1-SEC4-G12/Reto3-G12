@@ -1,4 +1,8 @@
-#ISIS1225 - Librerias de soporte
+
+## Samuel Torres Florez -- Cod:201632770 -- s.torresf@uniandes.edu.co
+## Alejandro Diaz-Granados -- Cod:202021008 -- a.diazgranadosb@uniandes.edu.co
+
+# ISIS1225 - Librerias de soporte
 
 Este proyecto contiene los Tipos abstractos de datos, estructuras de datos y algoritmos requeridos por el curso ISIS1225-Estructuras de Datos y Algoritmos
 

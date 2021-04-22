@@ -36,10 +36,11 @@ operación solicitada
 
 def printMenu():
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("1- Inizializar catálogo ")
+    print("2- Cargar información en el catálogo ")
+    print("3- Obtener características del árbol ")
 
-catalog = None
+cont = None
 
 """
 Menu principal
@@ -48,12 +49,17 @@ while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
+        print("\nInicializando....")
         cont = controller.init()
 
     elif int(inputs[0]) == 2:
-        pass
+        print("\nCargando información de canciones ....")
+        controller.loadData(cont)
+
+    elif int(inputs[0]) == 3:
+        print('Canciones cargadas: ' + str(controller.eventsSize(cont)))
+        print('Altura del arbol: ' + str(controller.indexHeight(cont)))
+        print('Elementos en el arbol: ' + str(controller.indexSize(cont)))
 
     else:
         sys.exit(0)
-sys.exit(0)
