@@ -1,6 +1,17 @@
 
-## Samuel Torres Florez -- Cod:201632770 -- s.torresf@uniandes.edu.co
-## Alejandro Diaz-Granados -- Cod:202021008 -- a.diazgranadosb@uniandes.edu.co
+# INTEGRANTES
+
+## Samuel Torres Florez
+
+Correo: s.torresf@uniandes.edu.co
+
+Código: 201632770
+
+## Alejandro Diaz-Granados
+
+Correo: a.diazgranadosb@uniandes.edu.co
+
+Código: 202021008
 
 # ISIS1225 - Librerias de soporte
 
