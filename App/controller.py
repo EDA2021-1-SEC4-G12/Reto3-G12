@@ -45,7 +45,7 @@ def loadData(analyzer):
     """
     Carga los datos de los archivos CSV en el modelo
     """
-    tracksfile = cf.data_dir + 'user_track_hashtag_timestamp-5pct.csv'
+    tracksfile = cf.data_dir + 'user_track_hashtag_timestamp-small.csv'
     input_file = csv.DictReader(open(tracksfile, encoding="utf-8"),
                                 delimiter=",")
     for event in input_file:
