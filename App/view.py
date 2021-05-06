@@ -39,7 +39,12 @@ def printMenu():
     print("1- Inizializar catálogo ")
     print("2- Cargar información en el catálogo ")
     print("3- Obtener características del árbol ")
-
+    print("4- Conocer eproducciones con una característica específica de contenido y un rango determinado")
+    print("5- Encontrar música para festejar")
+    print("6- Encontrar música para estudiar")
+    print("7- Encontrar música por género")
+    print("8- Encontrar género más escuchado en un tiempo dado")
+    
 cont = None
 
 """
