@@ -25,7 +25,11 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 assert cf
-
+import os
+import random
+from DISClib.ADT import map as mp
+from DISClib.ADT import orderedmap as om
+from DISClib.DataStructures import mapentry as me
 
 """
 La vista se encarga de la interacción con el usuario
@@ -34,18 +38,53 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
+analyzer = None
+
+events_analysis_file = 'context_content_features-small.csv'
+sentiment_values = 'sentiment_values.csv'
+hashtag_file = 'user_track_hashtag_timestamp-small.csv'
+
+genre = {
+    '1- reggae': (60, 90),
+    '2- down-tempo': (70, 100),
+    '3- chill-out': (90, 120),
+    '4- hip-hop': (85, 115),
+    '5- jazz and funk': (120, 125),
+    '6- pop': (100, 130),
+    '7- r&b': (60, 80),
+    '8- rock': (110, 140),
+    '9- metal': (100, 160)}
+
+
+
+
 def printMenu():
     print("Bienvenido")
-    print("1- Inizializar catálogo ")
-    print("2- Cargar información en el catálogo ")
-    print("3- Obtener características del árbol ")
-    print("4- Conocer eproducciones con una característica específica de contenido y un rango determinado")
-    print("5- Encontrar música para festejar")
-    print("6- Encontrar música para estudiar")
-    print("7- Encontrar música por género")
-    print("8- Encontrar género más escuchado en un tiempo dado")
-    
+    print("1- Inizializar y Cargar información en el catálogo ")
+    print("2- Conocer Reproducciones con una característica específica de contenido y un rango determinado")
+    print("3- Encontrar música para festejar")
+    print("4- Encontrar música para estudiar")
+    print("5- Encontrar música por género")
+    print("6- Encontrar género más escuchado en un tiempo dado")
+    print("7- Salir")
 cont = None
+
+def printRandom5(mapa, str1, str2):
+    '''
+    Imprime 5 eventos random dentro del mapa
+    '''
+    lista = mp.keySet(mapa)
+    listsize = lt.size(lista)
+    sample = random.sample(range(listsize), 5)
+    n = 0
+    for num in sample:
+        n += 1
+        element = lt.getElement(lista, num)
+        thing = mp.get(mapa, element)
+        value = me.getValue(thing)
+        print(
+            "Track:", n, str(element),
+            str1, ':', value[0], str2, ':', value[1])
 
 """
 Menu principal
@@ -53,18 +92,66 @@ Menu principal
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
+
     if int(inputs[0]) == 1:
-        print("\nInicializando....")
-        cont = controller.init()
+        analyzer = controller.init()
+        print("Cargando información de los archivos ....")
+        answer = controller.loadData(
+            analyzer, events_analysis_file, hashtag_file, sentiment_values)
+        print('Registro de eventos Cargados: ' + str(controller.eventsSize(
+            analyzer)))
+        print('Artistas únicos Cargados: ' + str(controller.artistsSize(
+            analyzer)))
+        print('Pistas únicas Cargados: ' + str(controller.tracksSize(
+            analyzer)))
+              
+        print('\n')
+        print(
+            "Tiempo [ms]: ",
+            f"{answer[0]:.3f}", "  ||  ",
+            "Memoria [kB]: ",
+            f"{answer[1]:.3f}")
+        
 
     elif int(inputs[0]) == 2:
-        print("\nCargando información de canciones ....")
-        controller.loadData(cont)
+        criteria = input("Ingrese el criterio a evaluar: ")
+        initial = float(input("Ingrese el límite inferior: "))
+        final = float(input("Ingrese el límite superior: "))
+        print("Buscando en la base de datos ....")
+        result = controller.getEventsByRange(
+            analyzer, criteria, initial, final)
+        print('Registro de eventos Cargados: ' + str(result[0][0]))
+        print('Artistas únicos Cargados: ' + str(result[0][1]))
+        print(
+            "Tiempo [ms]: ",
+            f"{result[1]:.3f}", "  ||  ",
+            "Memoria [kB]: ",
+            f"{result[2]:.3f}")
 
     elif int(inputs[0]) == 3:
-        print('Canciones cargadas: ' + str(controller.eventsSize(cont)))
-        print('Altura del arbol: ' + str(controller.indexHeight(cont)))
-        print('Elementos en el arbol: ' + str(controller.indexSize(cont)))
+        initialenergy = float(input(
+            "Ingrese el límite inferior para la energía: "))
+        finalenergy = float(input(
+            "Ingrese el límite superior para la energía: "))
+        energyrange = (initialenergy, finalenergy)
+        initialdanceability = float(input(
+            "Ingrese el límite inferior para la capacidad de baile: "))
+        finaldanceability = float(input(
+            "Ingrese el límite superior para la capacidad de baile: "))
+        danceabilityrange = (initialdanceability, finaldanceability)
+        print("Buscando en la base de datos ....")
+        result = controller.getMusicToParty(
+            analyzer, energyrange, danceabilityrange)
+        print('Artistas únicos Cargados:', str(result[0][0]))
+        print('Tracks únicas Cargadas:', str(result[0][1]))
+        printRandom5(result[0][2], 'energy', 'danceability')
+        print(
+            "Tiempo [ms]: ",
+            f"{result[1]:.3f}", "  ||  ",
+            "Memoria [kB]: ",
+            f"{result[2]:.3f}")
+
 
     else:
         sys.exit(0)
+sys.exit(0)

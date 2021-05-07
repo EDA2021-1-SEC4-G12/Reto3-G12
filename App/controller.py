@@ -23,13 +23,13 @@
 import config as cf
 import model
 import csv
+import time
+import tracemalloc
 
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
-
-# Inicialización del Catálogo
 
 def init():
     """
@@ -39,75 +39,174 @@ def init():
     analyzer = model.newAnalyzer()
     return analyzer
 
-# Funciones para la carga de datos
 
-def loadData(analyzer):
+# Inicialización del Catálogo
+
+
+def loadData(analyzer, file1, file2, file3):
     """
     Carga los datos de los archivos CSV en el modelo
     """
-    tracksfile = cf.data_dir + 'user_track_hashtag_timestamp-small.csv'
-    input_file = csv.DictReader(open(tracksfile, encoding="utf-8"),
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
+    loadEvents(analyzer, file1)
+    loadHashtags(analyzer, file2)
+    loadVader(analyzer, file3)
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+
+    return delta_time, delta_memory
+
+# Funciones para la carga de datos
+
+
+def loadEvents(analyzer, file):
+    """
+    Itera cada elemento del archivo csv
+    """
+    analysis_file = cf.data_dir + file
+    input_file = csv.DictReader(open(analysis_file, encoding="utf-8"),
                                 delimiter=",")
     for event in input_file:
         model.addEvent(analyzer, event)
-    return analyzer
+
+
+def loadHashtags(analyzer, file):
+    """
+    Itera cada elemento del archivo csv
+    """
+    analysis_file = cf.data_dir + file
+    input_file = csv.DictReader(open(analysis_file, encoding="utf-8"),
+                                delimiter=",")
+    for event in input_file:
+        key = event['user_id'] + event['track_id']
+        model.addOnMap(analyzer, event['hashtag'], key, 'hashtags')
+
+
+def loadVader(analyzer, file):
+    """
+    Itera cada elemento del archivo csv
+    """
+    analysis_file = cf.data_dir + file
+    input_file = csv.DictReader(open(analysis_file, encoding="utf-8"),
+                                delimiter=",")
+    for vader in input_file:
+        model.addOnMap(
+            analyzer, vader['vader_avg'], vader['hashtag'], 'vaders')
 
 # Funciones de ordenamiento
 
-# Funciones de consulta sobre el catálogo
+# Funciones de consulta sobre el analyzer
+
+
+def getEventsByRange(analyzer, criteria, initial, final):
+    '''
+    Función puente entre las funciones homónimas entre el model y view
+    '''
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
+    result = model.getEventsByRange(analyzer, criteria, initial, final)
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    return result, delta_time, delta_memory
+
+
+
+def getMusicToParty(analyzer, energyrange, danceabilityrange):
+    '''
+    Función puente entre las funciones homónimas entre el model y view
+    '''
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
+    result = model.getTrcForTwoCriteria(
+        analyzer, energyrange, 'energy', danceabilityrange, 'danceability')
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    return result, delta_time, delta_memory
+
+
+
+
+
 
 def eventsSize(analyzer):
     """
-    Numero de crimenes leidos
+    Número de eventos cargados
     """
     return model.eventsSize(analyzer)
 
 
-def indexHeight(analyzer):
+def artistsSize(analyzer):
     """
-    Altura del indice (arbol)
+    Número de artistas únicos
     """
-    return model.indexHeight(analyzer)
+    return model.artistsSize(analyzer)
 
 
-def indexSize(analyzer):
+def tracksSize(analyzer):
     """
-    Numero de nodos en el arbol
+    Número de pistas únicas
     """
-    return model.indexSize(analyzer)
+    return model.tracksSize(analyzer)
+
+# Medir tiempo y memoria
 
 
-def minKey(analyzer):
+def getTime():
     """
-    La menor llave del arbol
+    devuelve el instante tiempo de procesamiento en milisegundos
     """
-    return model.minKey(analyzer)
+    return float(time.perf_counter()*1000)
 
 
-def maxKey(analyzer):
+def getMemory():
     """
-    La mayor llave del arbol
+    toma una muestra de la memoria alocada en instante de tiempo
     """
-    return model.maxKey(analyzer)
+    return tracemalloc.take_snapshot()
 
 
-# def getCrimesByRange(analyzer, initialDate, finalDate):
-#     """
-#     Retorna el total de crimenes en un rango de fechas
-#     """
-#     initialDate = datetime.datetime.strptime(initialDate, '%Y-%m-%d')
-#     finalDate = datetime.datetime.strptime(finalDate, '%Y-%m-%d')
-#     return model.getCrimesByRange(analyzer, initialDate.date(),
-#                                   finalDate.date())
+def deltaMemory(start_memory, stop_memory):
+    """
+    calcula la diferencia en memoria alocada del programa entre dos
+    instantes de tiempo y devuelve el resultado en bytes (ej.: 2100.0 B)
+    """
+    memory_diff = stop_memory.compare_to(start_memory, "filename")
+    delta_memory = 0.0
 
-
-# def getCrimesByRangeCode(analyzer, initialDate,
-#                          offensecode):
-#     """
-#     Retorna el total de crimenes de un tipo especifico en una
-#     fecha determinada
-#     """
-#     initialDate = datetime.datetime.strptime(initialDate, '%Y-%m-%d')
-#     return model.getCrimesByRangeCode(analyzer, initialDate.date(),
-#                                       offensecode)
-
+    # suma de las diferencias en uso de memoria
+    for stat in memory_diff:
+        delta_memory = delta_memory + stat.size_diff
+    # de Byte -> kByte
+    delta_memory = delta_memory/1024.0
+    return delta_memory
