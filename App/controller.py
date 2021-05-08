@@ -155,7 +155,27 @@ def getMusicToParty(analyzer, energyrange, danceabilityrange):
     return result, delta_time, delta_memory
 
 
+def getMusicToStudy(analyzer, instrumentalnessrange, temporange):
+    '''
+    Función puente entre las funciones homónimas entre el model y view
+    '''
+    delta_time = -1.0
+    delta_memory = -1.0
 
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
+    result = model.getTrcForTwoCriteria(
+        analyzer, instrumentalnessrange, 'instrumentalness', temporange, 'tempo')
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    return result, delta_time, delta_memory
 
 
 

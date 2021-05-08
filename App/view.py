@@ -151,6 +151,29 @@ while True:
             "Memoria [kB]: ",
             f"{result[2]:.3f}")
 
+    elif int(inputs[0]) == 4:
+        initialinstrumentalness = float(input(
+            "Ingrese el límite inferior para la instrumentalidad: "))
+        finalinstrumentalness = float(input(
+            "Ingrese el límite superior para la instrumentalidad: "))
+        instrumentalnessrange = (initialinstrumentalness, finalinstrumentalness)
+        initialtempo = float(input(
+            "Ingrese el límite inferior para el tempo: "))
+        finaltempo = float(input(
+            "Ingrese el límite superior para el tempo: "))
+        temporange = (initialtempo, finaltempo)
+        print("Buscando en la base de datos ....")
+        result = controller.getMusicToStudy(
+            analyzer, instrumentalnessrange, temporange)
+        print('Artistas únicos Cargados:', str(result[0][0]))
+        print('Tracks únicas Cargadas:', str(result[0][1]))
+        printRandom5(result[0][2], 'instrumentalness', 'tempo')
+        print(
+            "Tiempo [ms]: ",
+            f"{result[1]:.3f}", "  ||  ",
+            "Memoria [kB]: ",
+            f"{result[2]:.3f}")
+
 
     else:
         sys.exit(0)
