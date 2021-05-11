@@ -114,6 +114,22 @@ def printTopGenres(mapa):
             "TOP", n, ': ', str(elems[0]) + ' con ' + str(elems[1]) + ' reproducciones')
 
 
+
+def print10Tracks(mapa):
+    '''
+    Imprime primeros 10 tracks dentro del mapa
+    '''
+    n = 0
+    print('Los primeros top 10 tracks son...')
+    for num in range(10):
+        n += 1
+        element = lt.getElement(lista, num)
+        thing = mp.get(mapa, element)
+        value = me.getValue(thing)
+        print(
+            "TOP", n, 'track:', str(value['track_id']), 'with', str(value['n_hashtags']), 'and', 'VADER = ', str(value['vader']))
+
+
 """
 Menu principal
 """
@@ -256,7 +272,7 @@ while True:
 
         hi_time_sec = hi_time.split(':'); hi_time_sec = int(hi_time_sec[0])*3600 + int(hi_time_sec[1])*60 + int(hi_time_sec[2])
         lo_time_sec = lo_time.split(':'); lo_time_sec = int(lo_time_sec[0])*3600 + int(lo_time_sec[1])*60 + int(lo_time_sec[2])
-        
+        # Get top genre
         dict_genres_reps = {}
         total_e = 0
         for genre_i in genre.keys():
@@ -271,24 +287,19 @@ while True:
         print('----------------------------------------------------------')
         print('\nTotal de reproducciones entre {} y {}: {}'.format(lo_time,hi_time,total_e))
         top_k, top_v = sorted_genred_reps[0][0], sorted_genred_reps[0][1]
-        # top_k, top_v = list(sorted_genred_reps.keys()), list(sorted_genred_reps.values())
-        print('El genero TOP es {} con {} reproducciones...'.forma(top_k, top_v))
+        print('El genero TOP es {} con {} reproducciones...'.format(top_k, top_v))
 
+        # Do sentiment analysis on top genre
+        result = controller.doSentimentAnalysis(analyzer, genre[top_k])
+        print('================= ' + top_k.upper() + ' SENTIMENT ANALYSIS' + ' =================')
+        print('{} has {} unique tracks...'.format(top_k,result[0][1]))
 
-
-            
-        #     print('El tempo de ' + str(genre_i) + ' esta entre ' + str(bounds_i[0]) + ' y ' + str(bounds_i[1]) + ' BPM')
-        #     print('Registro de eventos Cargados: ' + str(result[0][0]))
-        #     print('Artistas únicos Cargados: ' + str(result[0][1]))
-        #     print10Artists(result[0][4], genre_i)
-        #     print(
-        #         "Tiempo [ms]: ",
-        #         f"{result[1]:.3f}", "  ||  ",
-        #         "Memoria [kB]: ",
-        #         f"{result[2]:.3f}")
-
-        # print('\nTotal de reproducciones: ' + str(total_e))
-
+        print10Tracks(result[0][0])
+        print(
+            "Tiempo [ms]: ",
+            f"{result[1]:.3f}", "  ||  ",
+            "Memoria [kB]: ",
+            f"{result[2]:.3f}")
 
     else:
         sys.exit(0)

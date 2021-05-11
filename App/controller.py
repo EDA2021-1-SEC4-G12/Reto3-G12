@@ -200,6 +200,30 @@ def getEventsByTimeRangeGenre(analyzer, temporange, timerange):
     return result
 
 
+def doSentimentAnalysis(analyzer, temporange):
+    '''
+    Función puente entre las funciones homónimas entre el model y view
+    '''
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
+    result = model.doSentimentAnalysis(
+        analyzer, temporange[0], temporange[1])
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    return result, delta_time, delta_memory
+
+
+
 
 def eventsSize(analyzer):
     """

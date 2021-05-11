@@ -24,6 +24,7 @@
  * Dario Correal - Version inicial
  """
 
+from DISClib.DataStructures.bst import valuesRange
 from math import e
 import config as cf
 from DISClib.ADT import list as lt
@@ -204,6 +205,16 @@ def newTrackEntry(track_id, creation_date):
     return entry
 
 
+def TrackOutput(track_id, n_hashtags, vader):
+    entry = {'track_id': None,
+             'n_hashtags': None,
+             'vader': None}
+    entry['tracK_id'] = track_id
+    entry['n_hashtags'] = n_hashtags
+    entry['vader'] = vader
+    return entry
+
+
 # Funciones de consulta
 
 
@@ -228,6 +239,38 @@ def tracksSize(analyzer):
     saber los tracks únicos cargados
     '''
     return om.size(analyzer['tracks'])
+
+
+def doSentimentAnalysis(analyzer, tempo_lo, tempo_hi):
+    lst_events = om.values(analyzer['tempo'], tempo_lo, tempo_hi)
+    track_map = analyzer['tracks']
+    hashtag_vader_map = analyzer['hashtag_vader']
+
+    tracks = lt.newList()
+
+    for lstevents in lt.iterator(lst_events):
+            for ev_ in lt.iterator(lstevents['events']):
+                # get id
+                entry = om.get(track_map, ev_['track_id'])
+                if entry is not None:
+                    value = me.getValue(entry)
+                    # iterate over hastags
+                    vader_vals = []
+                    for ht_ in lt.iterator(value['hashtags']):
+                        vader_val = mp.get(hashtag_vader_map, ht_)
+                        if vader_val is not None:
+                            vader_val = vader_val['value']
+                            vader_val = float(vader_val)
+                            vader_vals.append(vader_val)
+                    n_hs = len(vader_vals)
+                    if n_hs == 0:
+                        mean_vader = 0
+                    else:
+                        mean_vader = sum(vader_vals)/n_hs
+                    track_out = TrackOutput(value['track_id'], n_hs, mean_vader)
+                    lt.addLast(tracks,track_out)
+
+    return tracks, lt.size(tracks)
 
 
 def getEventsByTimeRangeGenre(analyzer, initial_time, final_time, tempo_lo, tempo_hi):
