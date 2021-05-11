@@ -115,7 +115,7 @@ def printTopGenres(mapa):
 
 
 
-def print10Tracks(mapa):
+def print10Tracks(list):
     '''
     Imprime primeros 10 tracks dentro del mapa
     '''
@@ -123,11 +123,11 @@ def print10Tracks(mapa):
     print('Los primeros top 10 tracks son...')
     for num in range(10):
         n += 1
-        element = lt.getElement(lista, num)
-        thing = mp.get(mapa, element)
-        value = me.getValue(thing)
+        element = lt.getElement(list, num)
+        # thing = mp.get(mapa, element)
+        # value = me.getValue(thing)
         print(
-            "TOP", n, 'track:', str(value['track_id']), 'with', str(value['n_hashtags']), 'and', 'VADER = ', str(value['vader']))
+            "TOP", n, 'track:', str(element['track_id']), 'with', str(element['n_hashtags']), 'and', 'VADER = ', str(element['vader']))
 
 
 """

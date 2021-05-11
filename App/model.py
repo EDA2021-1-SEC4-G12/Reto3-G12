@@ -260,8 +260,11 @@ def doSentimentAnalysis(analyzer, tempo_lo, tempo_hi):
                         vader_val = mp.get(hashtag_vader_map, ht_)
                         if vader_val is not None:
                             vader_val = vader_val['value']
-                            vader_val = float(vader_val)
-                            vader_vals.append(vader_val)
+                            try:
+                                vader_val = float(vader_val)
+                                vader_vals.append(vader_val)
+                            except ValueError:
+                                continue
                     n_hs = len(vader_vals)
                     if n_hs == 0:
                         mean_vader = 0
