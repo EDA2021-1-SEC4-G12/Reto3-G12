@@ -24,11 +24,13 @@
  * Dario Correal - Version inicial
  """
 
+from math import e
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
+from datetime import datetime
 assert cf
 
 
@@ -56,9 +58,9 @@ def newAnalyzer():
                 'vaders': None
                 }
 
-    analyzer['events'] = lt.newList(datastructure='ARRAY_LIST')
+    analyzer['events'] = lt.newList(datastructure='LINKED_LIST', cmpfunction=compareIds)
     analyzer['artists'] = mp.newMap(maptype='PROBING')
-    analyzer['tracks'] = mp.newMap(maptype='PROBING')
+    analyzer['tracks'] = om.newMap(omaptype='RBT')
     analyzer['instrumentalness'] = om.newMap(omaptype='RBT')
     analyzer['acousticness'] = om.newMap(omaptype='RBT')
     analyzer['liveness'] = om.newMap(omaptype='RBT')
@@ -68,8 +70,8 @@ def newAnalyzer():
     analyzer['valence'] = om.newMap(omaptype='RBT')
     analyzer['tempo'] = om.newMap(omaptype='RBT')
     analyzer['created_at'] = om.newMap(omaptype='RBT')
-    analyzer['hashtags'] = mp.newMap(maptype='PROBING')
-    analyzer['vaders'] = mp.newMap(maptype='PROBING')
+    analyzer['hashtag_vader'] = mp.newMap(maptype='PROBING')
+    # analyzer['vaders'] = mp.newMap(maptype='PROBING')
 
     return analyzer
 
@@ -83,7 +85,7 @@ def addEvent(analyzer, event):
     '''
     lt.addLast(analyzer['events'], event)
     mp.put(analyzer['artists'], event['artist_id'], 0)
-    mp.put(analyzer['tracks'], event['track_id'], 0)
+    addTrackOnOrderedRBTMap(analyzer, event['track_id'] , event, 'tracks')
     addEventOnOrderedRBTMap(
         analyzer, float(event['instrumentalness']),
         event, 'instrumentalness')
@@ -112,13 +114,43 @@ def addEvent(analyzer, event):
         analyzer, event['created_at'], event, 'created_at')
 
 
-def addOnMap(analyzer, event, key, map_name):
+def addHashtagsToTracks(analyzer, event):
     '''
     Agrega los hashtags y los vaders a sus mapas individuales
+    '''    
+    tracks_map = analyzer['tracks']
+    track_in = event['track_id']
+    hashtag_in = event['hashtag']
+    entry = om.get(tracks_map, track_in)
+    if entry is not None:
+        value = me.getValue(entry)
+        lt.addLast(value['hashtags'], hashtag_in.lower())
+
+
+def addOnMap(analyzer, event, key, map_name):
     '''
+    Agrega los los vaders a sus mapas individuales
+    '''    
     mp.put(analyzer[map_name], key, event)
 
 
+def addTrackOnOrderedRBTMap(analyzer, int_input, event, map_key):
+    """
+    La función de addEventOnOrderedRBTMap() adiciona el video al árbol
+    tipo RBT que se ha seleccionado.
+    Args:
+        analyzer: Analizador de eventos
+        int_input: Llave a analizar (track id)
+        video: Video a añadir
+        map_key: Especifica cuál mapa
+    """
+    selected_map = analyzer[map_key]
+    entry = om.get(selected_map, int_input)
+    if entry is not None:
+        value = me.getValue(entry)
+    else:
+        value = newTrackEntry(int_input,datetime.strptime(event['created_at'], '%Y-%m-%d %H:%M:%S'))
+        om.put(selected_map, int_input, value)
 
 
 def addEventOnOrderedRBTMap(analyzer, int_input, event, map_key):
@@ -156,10 +188,19 @@ def addTimedEvent(analyzer, int_input, event, map_key):
 
 
 
-
 def newDataEntry():
     entry = {'events': None}
-    entry['events'] = lt.newList('ARRAY_LIST')
+    entry['events'] = lt.newList()
+    return entry
+
+
+def newTrackEntry(track_id, creation_date):
+    entry = {'track_id': None,
+             'hashtags': None,
+             'created_at': None}
+    entry['tracK_id'] = track_id
+    entry['hashtags'] = lt.newList()
+    entry['created_at'] = creation_date
     return entry
 
 
@@ -186,7 +227,38 @@ def tracksSize(analyzer):
     Retorna el tamaño del mapa de tracks, para
     saber los tracks únicos cargados
     '''
-    return mp.size(analyzer['tracks'])
+    return om.size(analyzer['tracks'])
+
+
+def getEventsByTimeRangeGenre(analyzer, initial_time, final_time, tempo_lo, tempo_hi):
+    '''
+    Retorna los varias características de los
+    eventos dado un criterio y rango en el mismo,
+    buscándolos en un árbol
+    Args:
+        analyzer: Analizador de eventos
+        criteria: Llave del analyzer a analizar
+        initial: Inicio del rango
+        final: Fin del rango
+    '''
+    lst = om.values(analyzer['tempo'], tempo_lo, tempo_hi)
+    events = lt.newList()
+    artists = mp.newMap(maptype='PROBING')
+    tracks = mp.newMap(maptype='PROBING')
+
+    for lstevents in lt.iterator(lst):
+        for ev_ in lt.iterator(lstevents['events']):
+            ev_time = ev_['created_at'].split(" "); ev_time = ev_time[1].split(':')
+            ev_time = int(ev_time[0])*3600 + int(ev_time[1])*60 + int(ev_time[2])
+            if (ev_time >= initial_time) and (ev_time <= final_time):
+
+                mp.put(artists, ev_['artist_id'], 1)
+                mp.put(tracks, ev_['track_id'], 1)
+
+    artists_size = mp.size(artists)
+    tracks_size = mp.size(tracks)
+
+    return events, artists_size, tracks_size, artists, tracks
 
 
 def getEventsByRange(analyzer, criteria, initial, final):
@@ -217,9 +289,6 @@ def getEventsByRange(analyzer, criteria, initial, final):
     return events, artists_size, tracks_size, artists, tracks
 
 
-
-
-
 def getTrcForTwoCriteria(analyzer, criteria1range, str1, criteria2range, str2):
     '''
     Retorna los varias características de los
@@ -242,11 +311,61 @@ def getTrcForTwoCriteria(analyzer, criteria1range, str1, criteria2range, str2):
     result = om.values(submap[str2], criteria2range[0], criteria2range[1])
     artists = mp.newMap(maptype='PROBING')
     tracks = mp.newMap(maptype='PROBING')
+    n_events = 0
     for event1 in lt.iterator(result):
+        n_events += lt.size(event1['events'])
         for eventi in lt.iterator(event1['events']):
             mp.put(artists, eventi['artist_id'], 1)
             mp.put(
                 tracks, eventi['track_id'],
                 (eventi[str1], eventi[str2]))
-    return (mp.size(artists), mp.size(tracks), tracks)
+    return (mp.size(artists), mp.size(tracks), tracks, n_events)
 
+
+# Funciones de ordenamiento
+
+def lstevents(id1, id2):
+    """
+    Compara dos ids
+    """
+    if (int(id1) == int(id2)):
+        return 0
+    elif (int(id1) > int(id2)):
+        return 1
+    else:
+        return -1
+
+
+def compareDates(date1, date2):
+    """
+    Compara dos fechas
+    """
+    if (date1 == date2):
+        return 0
+    elif (date1 > date2):
+        return 1
+    else:
+        return -1
+
+def compareHashtags(hashtag1, hashtag2):
+    """
+    Compara dos hastags
+    """
+    hashtag = me.getKey(hashtag2)
+    if (hashtag1 == hashtag):
+        return 0
+    elif (hashtag1 > hashtag):
+        return 1
+    else:
+        return -1
+
+def compareIds(id1, id2):
+    """
+    Compara dos ids
+    """
+    if (str(id1) == str(id2)):
+        return 0
+    elif str(id1) > str(id2):
+        return 1
+    else:
+        return -1

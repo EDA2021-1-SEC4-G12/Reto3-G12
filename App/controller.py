@@ -89,8 +89,7 @@ def loadHashtags(analyzer, file):
     input_file = csv.DictReader(open(analysis_file, encoding="utf-8"),
                                 delimiter=",")
     for event in input_file:
-        key = event['user_id'] + event['track_id']
-        model.addOnMap(analyzer, event['hashtag'], key, 'hashtags')
+        model.addHashtagsToTracks(analyzer, event)
 
 
 def loadVader(analyzer, file):
@@ -102,7 +101,7 @@ def loadVader(analyzer, file):
                                 delimiter=",")
     for vader in input_file:
         model.addOnMap(
-            analyzer, vader['vader_avg'], vader['hashtag'], 'vaders')
+            analyzer, vader['vader_avg'], vader['hashtag'], 'hashtag_vader')
 
 # Funciones de ordenamiento
 
@@ -176,6 +175,29 @@ def getMusicToStudy(analyzer, instrumentalnessrange, temporange):
     delta_time = stop_time - start_time
     delta_memory = deltaMemory(start_memory, stop_memory)
     return result, delta_time, delta_memory
+
+
+def getEventsByTimeRangeGenre(analyzer, temporange, timerange):
+    '''
+    Función puente entre las funciones homónimas entre el model y view
+    '''
+    # delta_time = -1.0
+    # delta_memory = -1.0
+
+    # tracemalloc.start()
+    # start_time = getTime()
+    # start_memory = getMemory()
+
+    result = model.getEventsByTimeRangeGenre(
+        analyzer, timerange[0], timerange[1], temporange[0], temporange[1])
+
+    # stop_memory = getMemory()
+    # stop_time = getTime()
+    # tracemalloc.stop()
+
+    # delta_time = stop_time - start_time
+    # delta_memory = deltaMemory(start_memory, stop_memory)
+    return result
 
 
 

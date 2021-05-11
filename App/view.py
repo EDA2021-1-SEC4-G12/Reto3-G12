@@ -45,15 +45,15 @@ sentiment_values = 'sentiment_values.csv'
 hashtag_file = 'user_track_hashtag_timestamp-small.csv'
 
 genre = {
-    '1- reggae': (60, 90),
-    '2- down-tempo': (70, 100),
-    '3- chill-out': (90, 120),
-    '4- hip-hop': (85, 115),
-    '5- jazz and funk': (120, 125),
-    '6- pop': (100, 130),
-    '7- r&b': (60, 80),
-    '8- rock': (110, 140),
-    '9- metal': (100, 160)}
+    'reggae': (60, 90),
+    'down-tempo': (70, 100),
+    'chill-out': (90, 120),
+    'hip-hop': (85, 115),
+    'jazz and funk': (120, 125),
+    'pop': (100, 130),
+    'r&b': (60, 80),
+    'rock': (110, 140),
+    'metal': (100, 160)}
 
 
 
@@ -83,8 +83,36 @@ def printRandom5(mapa, str1, str2):
         thing = mp.get(mapa, element)
         value = me.getValue(thing)
         print(
-            "Track:", n, str(element),
+            "Track ", n, ':', str(element),
             str1, ':', value[0], str2, ':', value[1])
+
+def print10Artists(mapa, genero):
+    '''
+    Imprime primeros 10 artistas dentro del mapa
+    '''
+    lista = mp.keySet(mapa)
+    n = 0
+    print('--- Algunos artistas para ' + genero + ' ---')
+    for num in range(10):
+        n += 1
+        element = lt.getElement(lista, num)
+        thing = mp.get(mapa, element)
+        value = me.getValue(thing)
+        print(
+            "Artist", n, ':', str(element))
+
+
+        
+def printTopGenres(mapa):
+    '''
+    '''
+    n = 0
+    print('================= ' + 'GENEROS ORDENADOS POR REPRODUCCIONES' + ' =================')
+    for elems in mapa:
+        n += 1
+        print(
+            "TOP", n, ': ', str(elems[0]) + ' con ' + str(elems[1]) + ' reproducciones')
+
 
 """
 Menu principal
@@ -128,6 +156,7 @@ while True:
             "Memoria [kB]: ",
             f"{result[2]:.3f}")
 
+
     elif int(inputs[0]) == 3:
         initialenergy = float(input(
             "Ingrese el límite inferior para la energía: "))
@@ -151,6 +180,7 @@ while True:
             "Memoria [kB]: ",
             f"{result[2]:.3f}")
 
+
     elif int(inputs[0]) == 4:
         initialinstrumentalness = float(input(
             "Ingrese el límite inferior para la instrumentalidad: "))
@@ -173,6 +203,91 @@ while True:
             f"{result[1]:.3f}", "  ||  ",
             "Memoria [kB]: ",
             f"{result[2]:.3f}")
+
+
+    elif int(inputs[0]) == 5:
+        ifadd = int(input(
+            "Especifique si quiere añadir un nuevo genero músical (1=Sí, 0=No) : "))
+        while ifadd == 1:
+            addgenre = str(input(
+                "Ingrese el nombre del genero : "))
+            addLoTempo = float(input(
+                    "Ingrese el límite inferior para el tempo : "))
+            addHiTempo = float(input(
+                    "Ingrese el límite superior para el tempo : "))
+            if genre.has_key(addgenre.lower()):
+                print('Este genero ya está creado')
+            else:
+                genre[addgenre] = (addLoTempo, addHiTempo)
+                print('Genero musical ' + addgenre + ' añadido.')
+            ifadd = int(input(
+                "Especifique si quiere añadir un nuevo genero músical (1=Sí, 0=No) : "))
+
+        genre_list = str(input(
+            "Especifique los generos musicales que desea buscar, separados con coma (sin espacios) : "))
+        genre_list = genre_list.lower()
+        genre_list = genre_list.split(',')
+        total_e = 0
+        for genre_i in genre_list:
+            bounds_i = genre[genre_i]
+            result = controller.getEventsByRange(
+                    analyzer, 'tempo', bounds_i[0], bounds_i[1])
+            total_e += result[0][0]
+            print('\n========== ' + str(genre_i.upper()) + ' ==========')
+            print('El tempo de ' + str(genre_i) + ' esta entre ' + str(bounds_i[0]) + ' y ' + str(bounds_i[1]) + ' BPM')
+            print('Registro de eventos Cargados: ' + str(result[0][0]))
+            print('Artistas únicos Cargados: ' + str(result[0][1]))
+            print10Artists(result[0][4], genre_i)
+            print(
+                "Tiempo [ms]: ",
+                f"{result[1]:.3f}", "  ||  ",
+                "Memoria [kB]: ",
+                f"{result[2]:.3f}")
+
+        print('\nTotal de reproducciones: ' + str(total_e))
+
+
+    elif int(inputs[0]) == 6:
+
+        lo_time = str(input(
+                "Ingrese el límite inferior para el tiempo : "))
+        hi_time = str(input(
+                "Ingrese el límite superior para el tiempo : "))
+
+        hi_time_sec = hi_time.split(':'); hi_time_sec = int(hi_time_sec[0])*3600 + int(hi_time_sec[1])*60 + int(hi_time_sec[2])
+        lo_time_sec = lo_time.split(':'); lo_time_sec = int(lo_time_sec[0])*3600 + int(lo_time_sec[1])*60 + int(lo_time_sec[2])
+        
+        dict_genres_reps = {}
+        total_e = 0
+        for genre_i in genre.keys():
+            bounds_i = genre[genre_i]
+            result = controller.getEventsByTimeRangeGenre(
+                    analyzer, bounds_i, (lo_time_sec,hi_time_sec))
+            total_e += result[2]
+            dict_genres_reps[genre_i] = result[2]
+        
+        sorted_genred_reps = sorted(dict_genres_reps.items(), key=lambda x: x[1], reverse=True)
+        printTopGenres(sorted_genred_reps)
+        print('----------------------------------------------------------')
+        print('\nTotal de reproducciones entre {} y {}: {}'.format(lo_time,hi_time,total_e))
+        top_k, top_v = sorted_genred_reps[0][0], sorted_genred_reps[0][1]
+        # top_k, top_v = list(sorted_genred_reps.keys()), list(sorted_genred_reps.values())
+        print('El genero TOP es {} con {} reproducciones...'.forma(top_k, top_v))
+
+
+
+            
+        #     print('El tempo de ' + str(genre_i) + ' esta entre ' + str(bounds_i[0]) + ' y ' + str(bounds_i[1]) + ' BPM')
+        #     print('Registro de eventos Cargados: ' + str(result[0][0]))
+        #     print('Artistas únicos Cargados: ' + str(result[0][1]))
+        #     print10Artists(result[0][4], genre_i)
+        #     print(
+        #         "Tiempo [ms]: ",
+        #         f"{result[1]:.3f}", "  ||  ",
+        #         "Memoria [kB]: ",
+        #         f"{result[2]:.3f}")
+
+        # print('\nTotal de reproducciones: ' + str(total_e))
 
 
     else:
