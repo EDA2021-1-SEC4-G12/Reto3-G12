@@ -265,13 +265,13 @@ def doSentimentAnalysis(analyzer, tempo_lo, tempo_hi):
                                 vader_vals.append(vader_val)
                             except ValueError:
                                 continue
-                    n_hs = len(vader_vals)
-                    if n_hs == 0:
-                        mean_vader = 0
-                    else:
-                        mean_vader = sum(vader_vals)/n_hs
-                    track_out = TrackOutput(value['track_id'], n_hs, mean_vader)
-                    lt.addLast(tracks,track_out)
+                n_hs = len(vader_vals)
+                if n_hs == 0:
+                    mean_vader = 0
+                else:
+                    mean_vader = sum(vader_vals)/n_hs
+                track_out = TrackOutput(ev_['track_id'], n_hs, mean_vader)
+                lt.addLast(tracks,track_out)
 
     return tracks, lt.size(tracks)
 

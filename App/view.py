@@ -231,7 +231,7 @@ while True:
                     "Ingrese el límite inferior para el tempo : "))
             addHiTempo = float(input(
                     "Ingrese el límite superior para el tempo : "))
-            if genre.has_key(addgenre.lower()):
+            if addgenre.lower() in list(genre.keys()): #.has_key(addgenre.lower()):
                 print('Este genero ya está creado')
             else:
                 genre[addgenre] = (addLoTempo, addHiTempo)
